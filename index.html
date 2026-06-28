@@ -349,9 +349,40 @@ function login(name){
   loadAndInit();
 }
 
-document.getElementById("custom-name-btn").addEventListener("click",()=>{
-  const v=document.getElementById("custom-name-inp").value.trim();
-  if(v.length>=1) login(v);
+document.getElementById("custom-name-btn").addEventListener("click", async () => {
+  const v = document.getElementById("custom-name-inp").value.trim();
+  
+  if (v.length >= 1) {
+    const btn = document.getElementById("custom-name-btn");
+    const originalText = btn.textContent;
+    
+    // Temporarily disable the button while checking Firebase
+    btn.textContent = "Kontrol ediliyor...";
+    btn.disabled = true;
+    btn.style.opacity = "0.7";
+
+    try {
+      // 1. Check if the name already exists in the database
+      const userSnap = await get(ref(db, `worldcup2026-son32/${v}`));
+      
+      if (userSnap.exists()) {
+        // 2. Name is taken! Show error and reset button
+        toast("Bu isim zaten kullanımda! Lütfen başka bir isim seçin.");
+        btn.textContent = originalText;
+        btn.disabled = false;
+        btn.style.opacity = "1";
+      } else {
+        // 3. Name is free! Log them in
+        login(v);
+      }
+    } catch (e) {
+      console.error(e);
+      toast("Bağlantı hatası, lütfen tekrar deneyin.");
+      btn.textContent = originalText;
+      btn.disabled = false;
+      btn.style.opacity = "1";
+    }
+  }
 });
 if(localStorage.getItem("wcKOUser32")) login(localStorage.getItem("wcKOUser32"));
 
