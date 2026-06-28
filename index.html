@@ -461,10 +461,25 @@ function simulatePenalties() {
 }
 
 function renderMatchCard(idx) {
+  // EĞER KULLANICI TÜM MAÇLARI BİTİRDİYSE:
   if(idx >= SON32_MATCHES.length) {
+    document.getElementById("match-card").innerHTML = `
+      <div style="text-align:center; padding: 40px 20px;">
+        <div style="font-size:4rem; margin-bottom:16px;">🏆</div>
+        <div style="font-family:'Bebas Neue', sans-serif; font-size:2.5rem; letter-spacing:2px; color:var(--gold); margin-bottom:12px;">TÜM TAHMİNLER TAMAMLANDI</div>
+        <div style="color:var(--text-muted); font-size:0.95rem; line-height:1.5;">
+          Bütün maçların tahminlerini başarıyla yaptınız. Liderlik tablosunu ve topluluk oylarını görmek için sonuçlar sekmesini kullanmaya devam edebilirsiniz.
+        </div>
+      </div>
+    `;
+    document.getElementById("progress-fill").style.width = "100%";
+    document.getElementById("match-progress-txt").textContent = "Tahminler Tamamlandı";
+    
     switchTab("results");
     return;
   }
+
+  // NORMAL MAÇ RENDER MANTIĞI (Aşağısı eski kodunuzla aynı)
   const m = SON32_MATCHES[idx];
   document.getElementById("match-title-tag").textContent = `MAÇ ${idx+1} / ${SON32_MATCHES.length}`;
   document.getElementById("team1-flag").textContent = flag(m.t1);
