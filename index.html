@@ -654,32 +654,47 @@ function renderCommunityVotes(usersData) {
     const pctDraw = Math.round((votes.draw / votes.total) * 100);
     const pct2 = Math.round((votes.win2 / votes.total) * 100);
 
+    // Determine which outcome is most popular
+    const maxPct = Math.max(pct1, pctDraw, pct2);
+
+    function rowHTML(label, pct, colorVar, isWinner) {
+      return `
+        <div style="display:flex; align-items:center; gap:10px; margin-bottom:6px;">
+          <div style="width:110px; font-size:0.72rem; font-weight:${isWinner?'800':'600'}; 
+               color:${isWinner?'#fff':'#8b9dc3'}; text-align:right; flex-shrink:0; line-height:1.2;">
+            ${label}
+          </div>
+          <div style="flex:1; background:rgba(255,255,255,0.07); border-radius:6px; height:${isWinner?'18px':'14px'}; overflow:hidden;">
+            <div style="width:${pct}%; height:100%; background:${colorVar}; border-radius:6px;
+                 transition:width 0.6s ease; opacity:${isWinner?'1':'0.55'};"></div>
+          </div>
+          <div style="width:42px; font-size:${isWinner?'0.9rem':'0.78rem'}; font-weight:800; 
+               color:${isWinner?'#fff':'#8b9dc3'}; text-align:left; flex-shrink:0;">
+            %${pct}
+          </div>
+        </div>
+      `;
+    }
+
     htmlResult += `
       <div class="comm-match">
-        <div class="comm-teams">
-          <span>${flag(m.t1)} ${m.t1}</span>
-          <span>${m.t2} ${flag(m.t2)}</span>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+          <span style="font-weight:700; font-size:0.95rem;">${flag(m.t1)} ${m.t1}</span>
+          <span style="font-size:0.65rem; font-weight:700; letter-spacing:2px; 
+               color:var(--text-muted); background:rgba(255,255,255,0.05); 
+               padding:3px 10px; border-radius:10px;">VS</span>
+          <span style="font-weight:700; font-size:0.95rem;">${m.t2} ${flag(m.t2)}</span>
         </div>
-        <div style="display:flex; justify-content:space-between; font-size:9px; margin-bottom:4px; color:#aaa; text-transform:uppercase;">
-          <span>${m.t1.substring(0,3)} Kazanır</span>
-          <span>Berabere</span>
-          <span>${m.t2.substring(0,3)} Kazanır</span>
-        </div>
-        <div class="comm-bar-bg">
-          <div class="comm-fill win1" style="width: ${pct1}%" title="${m.t1} Kazanır: %${pct1}"></div>
-          <div class="comm-fill draw" style="width: ${pctDraw}%" title="Berabere: %${pctDraw}"></div>
-          <div class="comm-fill win2" style="width: ${pct2}%" title="${m.t2} Kazanır: %${pct2}"></div>
-        </div>
-        <div class="comm-labels">
-          <span style="color: #86efac">%${pct1}</span>
-          <span style="color: #fcd34d">%${pctDraw}</span>
-          <span style="color: #fca5a5">%${pct2}</span>
+        ${rowHTML(`🟢 ${m.t1} Kazanır`, pct1, '#22c55e', pct1 === maxPct)}
+        ${rowHTML(`🟡 Berabere / Pen.`, pctDraw, '#f59e0b', pctDraw === maxPct)}
+        ${rowHTML(`🔴 ${m.t2} Kazanır`, pct2, '#ef4444', pct2 === maxPct)}
+        <div style="text-align:right; font-size:0.68rem; color:var(--text-muted); margin-top:6px;">
+          ${votes.total} tahmin
         </div>
       </div>
     `;
-  }); // ← forEach ends HERE
+  });
 
-  // These two lines must be OUTSIDE the forEach
   if (htmlResult === "") {
     htmlResult = `<div style="text-align:center; color:var(--text-muted); font-size:0.9rem;">Henüz yeterli veri yok.</div>`;
   }
