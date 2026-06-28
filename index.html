@@ -662,19 +662,26 @@ function renderCommunityVotes(usersData) {
           <span>${flag(m.t1)} ${m.t1}</span>
           <span>${m.t2} ${flag(m.t2)}</span>
         </div>
-        <div class="comm-bar-bg">
-          <div class="comm-fill win1" style="width: ${pct1}%"></div>
-          <div class="comm-fill draw" style="width: ${pctDraw}%"></div>
-          <div class="comm-fill win2" style="width: ${pct2}%"></div>
+        
+        <div style="display:flex; justify-content:space-between; font-size:9px; margin-bottom:4px; color:#aaa; text-transform:uppercase;">
+          <span>${m.t1.substring(0,3)} Kazanır</span>
+          <span>Berabere</span>
+          <span>${m.t2.substring(0,3)} Kazanır</span>
         </div>
+
+        <div class="comm-bar-bg">
+          <div class="comm-fill win1" style="width: ${pct1}%" title="${m.t1} Kazanır: %${pct1}"></div>
+          <div class="comm-fill draw" style="width: ${pctDraw}%" title="Berabere: %${pctDraw}"></div>
+          <div class="comm-fill win2" style="width: ${pct2}%" title="${m.t2} Kazanır: %${pct2}"></div>
+        </div>
+        
         <div class="comm-labels">
-          <span style="color: #86efac; flex: 1; text-align: left;">%${pct1}</span>
-          <span style="color: #fcd34d; flex: 1; text-align: center;">%${pctDraw}</span>
-          <span style="color: #fca5a5; flex: 1; text-align: right;">%${pct2}</span>
+          <span style="color: #86efac">%${pct1}</span>
+          <span style="color: #fcd34d">%${pctDraw}</span>
+          <span style="color: #fca5a5">%${pct2}</span>
         </div>
       </div>
     `;
-  });
 
   if (htmlResult === "") {
     htmlResult = `<div style="text-align:center; color:var(--text-muted); font-size:0.9rem;">Henüz yeterli veri yok.</div>`;
