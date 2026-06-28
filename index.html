@@ -632,7 +632,6 @@ function renderCommunityVotes(usersData) {
     matchVotes[m.id] = { t1: m.t1, t2: m.t2, win1: 0, draw: 0, win2: 0, total: 0 };
   });
 
-  // Calculate totals from all users
   for (const [username, userData] of Object.entries(usersData)) {
     const userSims = userData.simulationResults || {};
     for (const matchId of Object.keys(matchVotes)) {
@@ -650,7 +649,7 @@ function renderCommunityVotes(usersData) {
   SON32_MATCHES.forEach(m => {
     const votes = matchVotes[m.id];
     if (votes.total === 0) return;
-    
+
     const pct1 = Math.round((votes.win1 / votes.total) * 100);
     const pctDraw = Math.round((votes.draw / votes.total) * 100);
     const pct2 = Math.round((votes.win2 / votes.total) * 100);
@@ -678,13 +677,12 @@ function renderCommunityVotes(usersData) {
         </div>
       </div>
     `;
-  });
+  }); // ← forEach ends HERE
 
-  // THIS IS THE FIX: This check must be OUTSIDE the forEach loop
+  // These two lines must be OUTSIDE the forEach
   if (htmlResult === "") {
     htmlResult = `<div style="text-align:center; color:var(--text-muted); font-size:0.9rem;">Henüz yeterli veri yok.</div>`;
   }
-  
   document.getElementById("community-list").innerHTML = htmlResult;
 }
 async function updateLeaderboard() {
