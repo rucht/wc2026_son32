@@ -649,40 +649,38 @@ function renderCommunityVotes(usersData) {
   let htmlResult = "";
   SON32_MATCHES.forEach(m => {
     const votes = matchVotes[m.id];
-    if (votes.total === 0) return; // Hide match if nobody has voted yet
+    if (votes.total === 0) return;
     
-    // Convert to percentages
     const pct1 = Math.round((votes.win1 / votes.total) * 100);
     const pctDraw = Math.round((votes.draw / votes.total) * 100);
     const pct2 = Math.round((votes.win2 / votes.total) * 100);
 
-htmlResult += `
-  <div class="comm-match">
-    <div class="comm-teams">
-      <span>${flag(m.t1)} ${m.t1}</span>
-      <span>${m.t2} ${flag(m.t2)}</span>
-    </div>
-    
-    <div style="display:flex; justify-content:space-between; font-size:9px; margin-bottom:4px; color:#aaa; text-transform:uppercase;">
-      <span>${m.t1.substring(0,3)} Kazanır</span>
-      <span>Berabere</span>
-      <span>${m.t2.substring(0,3)} Kazanır</span>
-    </div>
+    htmlResult += `
+      <div class="comm-match">
+        <div class="comm-teams">
+          <span>${flag(m.t1)} ${m.t1}</span>
+          <span>${m.t2} ${flag(m.t2)}</span>
+        </div>
+        <div style="display:flex; justify-content:space-between; font-size:9px; margin-bottom:4px; color:#aaa; text-transform:uppercase;">
+          <span>${m.t1.substring(0,3)} Kazanır</span>
+          <span>Berabere</span>
+          <span>${m.t2.substring(0,3)} Kazanır</span>
+        </div>
+        <div class="comm-bar-bg">
+          <div class="comm-fill win1" style="width: ${pct1}%" title="${m.t1} Kazanır: %${pct1}"></div>
+          <div class="comm-fill draw" style="width: ${pctDraw}%" title="Berabere: %${pctDraw}"></div>
+          <div class="comm-fill win2" style="width: ${pct2}%" title="${m.t2} Kazanır: %${pct2}"></div>
+        </div>
+        <div class="comm-labels">
+          <span style="color: #86efac">%${pct1}</span>
+          <span style="color: #fcd34d">%${pctDraw}</span>
+          <span style="color: #fca5a5">%${pct2}</span>
+        </div>
+      </div>
+    `;
+  });
 
-    <div class="comm-bar-bg">
-      <div class="comm-fill win1" style="width: ${pct1}%" title="${m.t1} Kazanır: %${pct1}"></div>
-      <div class="comm-fill draw" style="width: ${pctDraw}%" title="Berabere: %${pctDraw}"></div>
-      <div class="comm-fill win2" style="width: ${pct2}%" title="${m.t2} Kazanır: %${pct2}"></div>
-    </div>
-    
-    <div class="comm-labels">
-      <span style="color: #86efac">%${pct1}</span>
-      <span style="color: #fcd34d">%${pctDraw}</span>
-      <span style="color: #fca5a5">%${pct2}</span>
-    </div>
-  </div>
-`;
-
+  // THIS IS THE FIX: This check must be OUTSIDE the forEach loop
   if (htmlResult === "") {
     htmlResult = `<div style="text-align:center; color:var(--text-muted); font-size:0.9rem;">Henüz yeterli veri yok.</div>`;
   }
