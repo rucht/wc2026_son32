@@ -94,6 +94,19 @@ body::before{content:"";position:fixed;inset:0;background:radial-gradient(ellips
 
 .next-match-btn{width:100%;margin-top:16px;padding:14px;background:linear-gradient(135deg,var(--gold2),var(--gold));color:#0d1b3e;border:none;border-radius:14px;font-family:"Poppins",sans-serif;font-weight:700;font-size:.9rem;cursor:pointer;display:none}
 
+/* ── LEADERBOARD ── */
+.leaderboard-wrap { max-width: 440px; margin: 0 auto 40px; background: rgba(0,0,0,0.25); border-radius: 24px; border: 1px solid rgba(255,255,255,0.08); padding: 24px; box-shadow: 0 10px 30px rgba(0,0,0,.3); }
+.leaderboard-title { font-family: "Bebas Neue", sans-serif; font-size: 1.8rem; letter-spacing: 2px; color: var(--gold); text-align: center; margin-bottom: 20px; }
+.lb-item { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-bottom: 1px dashed rgba(255,255,255,0.05); }
+.lb-item:last-child { border-bottom: none; }
+.lb-rank { font-weight: 800; font-size: 1.2rem; color: var(--text-muted); width: 30px; text-align: center; }
+.lb-rank.rank-1 { color: #fbbf24; font-size: 1.4rem; }
+.lb-rank.rank-2 { color: #9ca3af; font-size: 1.3rem; }
+.lb-rank.rank-3 { color: #b45309; font-size: 1.2rem; }
+.lb-name { flex: 1; font-weight: 600; font-size: 1rem; margin-left: 12px; }
+.lb-pts { font-family: "Bebas Neue", sans-serif; font-size: 1.3rem; color: var(--green); background: rgba(34,197,94,0.15); padding: 4px 16px; border-radius: 12px; }
+
+
 /* ── RESULTS ── */
 .results-page{max-width:960px;margin:0 auto}
 .result-wrap{max-width:440px;margin:0 auto 40px}
@@ -173,9 +186,17 @@ body::before{content:"";position:fixed;inset:0;background:radial-gradient(ellips
     <div class="page" id="page-results">
       <div class="results-page">
         <div class="result-wrap" id="my-result-wrap"></div>
+        
+        <!-- NEW LEADERBOARD CONTAINER -->
+        <div class="leaderboard-wrap">
+          <div class="leaderboard-title">🏆 GENEL SIRALAMA</div>
+          <div id="leaderboard-list">
+            <div style="text-align:center; color:var(--text-muted); font-size:0.9rem;">Sıralama yükleniyor...</div>
+          </div>
+        </div>
+
       </div>
     </div>
-  </div> 
 
   <aside class="sidebar" id="stats-sidebar">
     <div class="sidebar-title">📊 TURNUVA LİDERLİKLERİ</div>
@@ -320,7 +341,10 @@ function toast(msg){
 function switchTab(name){
   document.querySelectorAll(".tab-btn").forEach(b=>b.classList.toggle("active",b.dataset.tab===name));
   document.querySelectorAll(".page").forEach(p=>p.classList.toggle("active",p.id==="page-"+name));
-  if(name==="results") renderResults();
+  if(name==="results") {
+    renderResults();
+    updateLeaderboard(); // Adds the leaderboard trigger
+  }
 }
 document.querySelectorAll(".tab-btn").forEach(b=>b.addEventListener("click",()=>switchTab(b.dataset.tab)));
 
@@ -578,6 +602,87 @@ function renderStats() {
   
   document.getElementById("top-scorers-list").innerHTML = topScorers.map(p => `<div class="stat-item"><div class="stat-player"><span>${flag(p.teamName)}</span> <span>${p.name}</span></div><div class="stat-val">${p.goals}</div></div>`).join("");
   document.getElementById("top-assists-list").innerHTML = topAssists.map(p => `<div class="stat-item"><div class="stat-player"><span>${flag(p.teamName)}</span> <span>${p.name}</span></div><div class="stat-val">${p.assists}</div></div>`).join("");
+}
+
+
+async function updateLeaderboard() {
+  const lbContainer = document.getElementById("leaderboard-list");
+  lbContainer.innerHTML = `<div style="text-align:center; color:var(--text-muted); font-size:0.9rem;">Sıralama hesaplanıyor...</div>`;
+
+  try {
+    // 1. Fetch ALL users' data from Firebase
+    const usersSnap = await get(ref(db, 'worldcup2026-son32'));
+    const usersData = usersSnap.val() || {};
+
+    // 2. Fetch the OFFICIAL results (Admin logic)
+    const officialSnap = await get(ref(db, 'worldcup2026-official'));
+    const officialResults = officialSnap.val() || {};
+
+    let leaderboard = [];
+
+    // 3. Loop through every user to calculate points
+    for (const [username, userData] of Object.entries(usersData)) {
+      let points = 0;
+      const userSims = userData.simulationResults || {};
+
+      // Check each completed official match
+      for (const [matchId, officialData] of Object.entries(officialResults)) {
+        const userMatchData = userSims[matchId];
+
+        if (userMatchData && userMatchData.isUserPrediction) {
+          
+          // Identify what the user originally clicked based on their saved scores
+          const userGuessedDraw = (userMatchData.s1 === userMatchData.s2);
+          const userGuessedWinner = userGuessedDraw ? null : userMatchData.winner;
+
+          const actualWinner = officialData.winner;
+          const wasDraw = officialData.wasDraw; // true if went to penalties/ET
+
+          // SCORING LOGIC
+          if (wasDraw) {
+            // Real match was a draw in 90 mins.
+            // 1 point if they guessed Draw, OR 1 point if they guessed the final winner.
+            if (userGuessedDraw || userGuessedWinner === actualWinner) {
+              points += 1;
+            }
+          } else {
+            // Real match was won in 90 mins.
+            // 1 point ONLY if they explicitly guessed the exact winner.
+            if (userGuessedWinner === actualWinner) {
+              points += 1;
+            }
+          }
+        }
+      }
+      leaderboard.push({ name: username, points: points });
+    }
+
+    // 4. Sort the leaderboard (Highest points first)
+    leaderboard.sort((a, b) => b.points - a.points);
+
+    // 5. Render to HTML
+    if (leaderboard.length === 0) {
+      lbContainer.innerHTML = `<div style="text-align:center; color:var(--text-muted); font-size:0.9rem;">Henüz veri yok.</div>`;
+      return;
+    }
+
+    lbContainer.innerHTML = leaderboard.map((user, index) => {
+      let rankClass = index === 0 ? 'rank-1' : (index === 1 ? 'rank-2' : (index === 2 ? 'rank-3' : ''));
+      let rankDisplay = index === 0 ? '🥇' : (index === 1 ? '🥈' : (index === 2 ? '🥉' : `${index + 1}.`));
+      
+      return `
+        <div class="lb-item">
+          <div class="lb-rank ${rankClass}">${rankDisplay}</div>
+          <div class="lb-name">${user.name}</div>
+          <div class="lb-pts">${user.points} PT</div>
+        </div>
+      `;
+    }).join("");
+
+  } catch (error) {
+    console.error("Leaderboard Hatası:", error);
+    lbContainer.innerHTML = `<div style="text-align:center; color:var(--red);">Sıralama yüklenirken bir hata oluştu.</div>`;
+  }
 }
 
 function renderResults() {
