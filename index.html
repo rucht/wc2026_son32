@@ -636,7 +636,7 @@ function renderCommunityVotes(usersData) {
     const userSims = userData.simulationResults || {};
     for (const matchId of Object.keys(matchVotes)) {
       const matchData = userSims[matchId];
-      if (matchData && matchData.isUserPrediction) {
+      if (matchData && matchData.s1 !== undefined) {
         matchVotes[matchId].total++;
         if (matchData.s1 > matchData.s2) matchVotes[matchId].win1++;
         else if (matchData.s1 === matchData.s2) matchVotes[matchId].draw++;
@@ -726,7 +726,7 @@ async function updateLeaderboard() {
       for (const [matchId, officialData] of Object.entries(officialResults)) {
         const userMatchData = userSims[matchId];
 
-        if (userMatchData && userMatchData.isUserPrediction) {
+        if (userMatchData && userMatchData.s1 !== undefined) {
           
           // Identify what the user originally clicked based on their saved scores
           const userGuessedDraw = (userMatchData.s1 === userMatchData.s2);
