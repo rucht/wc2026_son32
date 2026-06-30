@@ -123,11 +123,40 @@ body::before{content:"";position:fixed;inset:0;background:radial-gradient(ellips
 
 /* ── RESULTS ── */
 .results-page{max-width:960px;margin:0 auto}
-.result-wrap{max-width:440px;margin:0 auto 40px}
+.result-wrap{max-width:440px;margin:0 auto 20px}
 .result-card{background:linear-gradient(160deg,#0d1b3e 0%,#12244f 50%,#0a1630 100%);border:1px solid rgba(240,180,41,.25);border-radius:28px;padding:32px 24px;box-shadow:0 20px 60px rgba(0,0,0,.6);position:relative;overflow:hidden;text-align:center;}
 .result-title{font-family:"Bebas Neue",sans-serif;font-size:2rem;letter-spacing:3px;color:var(--gold);margin-bottom:6px}
 .result-user{font-size:.78rem;color:var(--text-muted);margin-bottom:24px;}
 .done-message{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:20px;font-weight:600;}
+
+/* ── MY PREDICTIONS BUTTON & MODAL ── */
+.my-pred-btn-wrap{max-width:440px;margin:0 auto 36px;text-align:center;}
+.my-pred-btn{display:inline-flex;align-items:center;gap:8px;padding:13px 26px;background:rgba(240,180,41,.1);border:1px solid rgba(240,180,41,.4);color:var(--gold);border-radius:20px;font-family:"Poppins",sans-serif;font-weight:700;font-size:.85rem;cursor:pointer;transition:.2s;}
+.my-pred-btn:hover{background:rgba(240,180,41,.18);transform:translateY(-1px);box-shadow:0 6px 18px rgba(0,0,0,.3);}
+
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(5,10,25,.75);z-index:9500;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(6px);}
+.modal-overlay.active{display:flex;}
+.modal-content{background:linear-gradient(160deg,#0d1b3e 0%,#12244f 50%,#0a1630 100%);border:1px solid rgba(240,180,41,.25);border-radius:24px;max-width:560px;width:100%;max-height:85vh;display:flex;flex-direction:column;box-shadow:0 24px 70px rgba(0,0,0,.65);}
+.modal-header{display:flex;justify-content:space-between;align-items:center;padding:20px 22px;border-bottom:1px solid rgba(255,255,255,.08);flex-shrink:0;}
+.modal-title{font-family:"Bebas Neue",sans-serif;font-size:1.5rem;letter-spacing:2px;color:var(--gold);}
+.modal-close{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);color:var(--text);width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:.9rem;flex-shrink:0;display:flex;align-items:center;justify-content:center;}
+.modal-close:hover{background:rgba(255,255,255,.16);}
+.modal-body{padding:8px 22px 20px;overflow-y:auto;}
+.modal-body::-webkit-scrollbar{width:6px}
+.modal-body::-webkit-scrollbar-thumb{background:rgba(240,180,41,.3);border-radius:4px}
+.modal-summary{text-align:center;font-size:.78rem;color:var(--text-muted);padding:10px 0 16px;border-bottom:1px solid rgba(255,255,255,.06);margin-bottom:6px;}
+.modal-summary strong{color:var(--gold);font-size:.95rem;}
+
+.pred-row{display:flex;align-items:center;gap:10px;padding:12px 0;border-bottom:1px dashed rgba(255,255,255,.06);}
+.pred-row:last-child{border-bottom:none;}
+.pred-match{display:flex;align-items:center;gap:6px;font-size:.82rem;font-weight:700;flex:1;min-width:0;}
+.pred-match .pflag{font-size:1.05rem;flex-shrink:0;}
+.pred-match .pteams{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.pred-status{font-size:.7rem;font-weight:600;color:var(--text-muted);max-width:130px;text-align:right;line-height:1.3;flex-shrink:0;}
+.pred-pts{font-family:"Bebas Neue",sans-serif;font-size:1.05rem;padding:4px 12px;border-radius:10px;min-width:38px;text-align:center;flex-shrink:0;}
+.pred-pts.pos{background:rgba(34,197,94,.15);color:var(--green);}
+.pred-pts.zero{background:rgba(239,68,68,.15);color:#fca5a5;}
+.pred-pts.pending{background:rgba(255,255,255,.06);color:var(--text-muted);}
 
 #wc-toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:9999;pointer-events:none;display:flex;flex-direction:column;gap:6px;align-items:center}
 .wc-toast-item{background:rgba(13,27,62,.95);color:#fff;padding:10px 22px;border-radius:22px;font-size:.82rem;backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.12);}
@@ -200,6 +229,10 @@ body::before{content:"";position:fixed;inset:0;background:radial-gradient(ellips
     <div class="page" id="page-results">
       <div class="results-page">
         <div class="result-wrap" id="my-result-wrap"></div>
+
+        <div class="my-pred-btn-wrap">
+          <button class="my-pred-btn" id="my-pred-toggle-btn">📋 Tahminlerim ve Puanlarım</button>
+        </div>
         
         <div class="results-grid">
           
@@ -232,7 +265,20 @@ body::before{content:"";position:fixed;inset:0;background:radial-gradient(ellips
       <div id="top-assists-list"></div>
     </div>
   </aside>
-</div> 
+</div>
+
+<div class="modal-overlay" id="my-predictions-modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <div class="modal-title">📋 TAHMİNLERİM</div>
+      <button class="modal-close" id="close-predictions-modal">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-summary" id="my-predictions-summary"></div>
+      <div id="my-predictions-list"></div>
+    </div>
+  </div>
+</div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
@@ -869,6 +915,82 @@ function renderResults() {
       </div>
     </div>`;
 }
+
+// ── TAHMİNLERİM (MY PREDICTIONS) MODAL ──
+async function openMyPredictionsModal() {
+  const modal = document.getElementById("my-predictions-modal");
+  modal.classList.add("active");
+  const listEl = document.getElementById("my-predictions-list");
+  const summaryEl = document.getElementById("my-predictions-summary");
+  listEl.innerHTML = `<div style="text-align:center;color:var(--text-muted);font-size:.85rem;padding:24px 0;">Yükleniyor...</div>`;
+  summaryEl.innerHTML = "";
+
+  let officialResults = {};
+  try {
+    const officialSnap = await get(ref(db, 'worldcup2026-official'));
+    officialResults = officialSnap.val() || {};
+  } catch (e) {
+    console.error(e);
+  }
+
+  let totalPts = 0, scoredMatches = 0, html = "";
+
+  SON32_MATCHES.forEach(m => {
+    const userPred = simulationResults[m.id];
+    const official = officialResults[m.id];
+    const hasChoice = !!(userPred && userPred.s1 !== undefined);
+
+    let predLabel;
+    if (hasChoice) {
+      if (userPred.s1 > userPred.s2) predLabel = `🟢 ${m.t1} (${userPred.s1}-${userPred.s2})`;
+      else if (userPred.s1 < userPred.s2) predLabel = `🔴 ${m.t2} (${userPred.s1}-${userPred.s2})`;
+      else predLabel = `🟡 Berabere (${userPred.s1}-${userPred.s2})`;
+    } else if (userPred && userPred.skipped) {
+      predLabel = "Tahmin kaçırıldı";
+    } else {
+      predLabel = "Tahmin yapılmadı";
+    }
+
+    let ptsClass = "pending", ptsText = "-";
+    if (official && hasChoice) {
+      const userGuessedDraw = userPred.s1 === userPred.s2;
+      const userGuessedWinner = userGuessedDraw ? null : userPred.winner;
+      let earned = 0;
+      if (official.wasDraw) {
+        if (userGuessedDraw || userGuessedWinner === official.winner) earned = 1;
+      } else {
+        if (userGuessedWinner === official.winner) earned = 1;
+      }
+      ptsClass = earned > 0 ? "pos" : "zero";
+      ptsText = earned > 0 ? `+${earned}` : "0";
+      totalPts += earned;
+      scoredMatches++;
+    }
+
+    html += `
+      <div class="pred-row">
+        <div class="pred-match">
+          <span class="pflag">${flag(m.t1)}</span>
+          <span class="pteams">${m.t1} - ${m.t2}</span>
+          <span class="pflag">${flag(m.t2)}</span>
+        </div>
+        <div class="pred-status">${predLabel}</div>
+        <div class="pred-pts ${ptsClass}">${ptsText}</div>
+      </div>
+    `;
+  });
+
+  summaryEl.innerHTML = `Sonuçlanan <strong>${scoredMatches}</strong> maçtan toplam <strong>${totalPts} PT</strong> kazandın`;
+  listEl.innerHTML = html;
+}
+
+document.getElementById("my-pred-toggle-btn").addEventListener("click", openMyPredictionsModal);
+document.getElementById("close-predictions-modal").addEventListener("click", () => {
+  document.getElementById("my-predictions-modal").classList.remove("active");
+});
+document.getElementById("my-predictions-modal").addEventListener("click", (e) => {
+  if (e.target.id === "my-predictions-modal") e.currentTarget.classList.remove("active");
+});
 
 document.getElementById("restart-btn").addEventListener("click", async()=>{
   if(!confirm("Simülasyonu sıfırlamak istediğine emin misin?")) return;
