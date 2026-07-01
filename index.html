@@ -865,8 +865,11 @@ async function updateLeaderboard() {
 
           // YENİ: TAM SKOR BİLME MANTIĞI (Tie-breaker)
           // Admin db'ye s1 ve s2 değerlerini girdiyse çalışır
+          // YENİ: TAM SKOR BİLME MANTIĞI (Tie-breaker)
+          // Admin db'ye s1 ve s2 değerlerini girdiyse çalışır
           if (officialData.s1 !== undefined && officialData.s2 !== undefined) {
-            if (userMatchData.s1 === officialData.s1 && userMatchData.s2 === officialData.s2) {
+            // VERİ TİPİ GÜVENLİĞİ: Firebase'den gelen değerin string olma ihtimaline karşı Number() kullanıyoruz
+            if (Number(userMatchData.s1) === Number(officialData.s1) && Number(userMatchData.s2) === Number(officialData.s2)) {
               exactScoreHits += 1;
             }
           }
