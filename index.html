@@ -830,7 +830,6 @@ async function updateLeaderboard() {
     const usersSnap = await get(ref(db, 'worldcup2026-son32'));
     const usersData = usersSnap.val() || {};
 
-
     // 2. Fetch the OFFICIAL results (Admin logic)
     const officialSnap = await get(ref(db, 'worldcup2026-official'));
     const officialResults = officialSnap.val() || {};
@@ -839,9 +838,10 @@ async function updateLeaderboard() {
 
     let leaderboard = [];
 
-    // 3. Loop through every user to calculate points
+    // 3. Loop through every user to calculate points & exact scores
     for (const [username, userData] of Object.entries(usersData)) {
       let points = 0;
+      let exactScoreHits = 0; // YENİ: Tam skor tutturma sayacı
       const userSims = userData.simulationResults || {};
 
       // Check each completed official match
@@ -850,34 +850,42 @@ async function updateLeaderboard() {
 
         if (userMatchData && userMatchData.s1 !== undefined) {
           
-          // Identify what the user originally clicked based on their saved scores
           const userGuessedDraw = (userMatchData.s1 === userMatchData.s2);
           const userGuessedWinner = userGuessedDraw ? null : userMatchData.winner;
 
           const actualWinner = officialData.winner;
-          const wasDraw = officialData.wasDraw; // true if went to penalties/ET
+          const wasDraw = officialData.wasDraw; 
 
-          // SCORING LOGIC
+          // PUANLAMA MANTIĞI
           if (wasDraw) {
-            // Real match was a draw in 90 mins.
-            // 1 point if they guessed Draw, OR 1 point if they guessed the final winner.
-            if (userGuessedDraw || userGuessedWinner === actualWinner) {
-              points += 1;
-            }
+            if (userGuessedDraw || userGuessedWinner === actualWinner) points += 1;
           } else {
-            // Real match was won in 90 mins.
-            // 1 point ONLY if they explicitly guessed the exact winner.
-            if (userGuessedWinner === actualWinner) {
-              points += 1;
+            if (userGuessedWinner === actualWinner) points += 1;
+          }
+
+          // YENİ: TAM SKOR BİLME MANTIĞI (Tie-breaker)
+          // Admin db'ye s1 ve s2 değerlerini girdiyse çalışır
+          if (officialData.s1 !== undefined && officialData.s2 !== undefined) {
+            if (userMatchData.s1 === officialData.s1 && userMatchData.s2 === officialData.s2) {
+              exactScoreHits += 1;
             }
           }
         }
       }
-      leaderboard.push({ name: username, points: points });
+      
+      // exactScoreHits verisini de listeye ekliyoruz
+      leaderboard.push({ name: username, points: points, exactScoreHits: exactScoreHits });
     }
 
-    // 4. Sort the leaderboard (Highest points first)
-    leaderboard.sort((a, b) => b.points - a.points);
+    // 4. Sort the leaderboard (YENİ SIRALAMA MANTIĞI)
+    leaderboard.sort((a, b) => {
+      // Önce puana bak (Yüksek puan üstte)
+      if (b.points !== a.points) {
+        return b.points - a.points;
+      }
+      // Puanlar EŞİTSE, tam skor bilme sayısına bak (Yüksek olan üstte)
+      return b.exactScoreHits - a.exactScoreHits;
+    });
 
     // 5. Render to HTML
     if (leaderboard.length === 0) {
@@ -889,10 +897,18 @@ async function updateLeaderboard() {
       let rankClass = index === 0 ? 'rank-1' : (index === 1 ? 'rank-2' : (index === 2 ? 'rank-3' : ''));
       let rankDisplay = index === 0 ? '🥇' : (index === 1 ? '🥈' : (index === 2 ? '🥉' : `${index + 1}.`));
       
+      // Eğer kullanıcı tam skor bildiyse, isminin altında ufak bir ibare göster
+      let exactScoreBadge = user.exactScoreHits > 0 
+        ? `<div style="font-size: 0.65rem; font-weight: 600; color: #fbbf24; margin-top: 2px;">🎯 ${user.exactScoreHits} Tam Skor</div>` 
+        : '';
+
       return `
         <div class="lb-item">
           <div class="lb-rank ${rankClass}">${rankDisplay}</div>
-          <div class="lb-name">${user.name}</div>
+          <div class="lb-name">
+            <div>${user.name}</div>
+            ${exactScoreBadge}
+          </div>
           <div class="lb-pts">${user.points} PT</div>
         </div>
       `;
