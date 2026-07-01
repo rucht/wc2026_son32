@@ -901,7 +901,7 @@ async function updateLeaderboard() {
       let rankDisplay = index === 0 ? '🥇' : (index === 1 ? '🥈' : (index === 2 ? '🥉' : `${index + 1}.`));
       
 // Eğer kullanıcı tam skor bildiyse, isminin altında ufak bir ibare göster
-      let exactScoreBadge = user.exactScoreHits > 0 ? `<div style="font-size: 0.65rem; font-weight: 600; color: #fbbf24; margin-top: 2px;">🎯 ${user.exactScoreHits} Doğru Skor Tahmini</div>` : '';
+      let exactScoreBadge = user.exactScoreHits > 0 ? `<div style="font-size: 0.65rem; font-weight: 600; color: #fbbf24; margin-top: 2px;">🎯 ${user.exactScoreHits} Doğru Skor </div>` : '';
 
       return `
         <div class="lb-item">
