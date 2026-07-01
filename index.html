@@ -902,7 +902,7 @@ async function updateLeaderboard() {
       
       // Eğer kullanıcı tam skor bildiyse, isminin altında ufak bir ibare göster
       let exactScoreBadge = user.exactScoreHits > 0 
-        ? `<div style="font-size: 0.65rem; font-weight: 600; color: #fbbf24; margin-top: 2px;">🎯 ${user.exactScoreHits} Tam Skor</div>` 
+        ? `<div style="font-size: 0.65rem; font-weight: 600; color: #fbbf24; margin-top: 2px;">🎯 ${user.exactScoreHits} Doğru Skor Tahmini</div>` 
         : '';
 
       return `
